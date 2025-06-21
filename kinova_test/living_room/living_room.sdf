@@ -1,0 +1,376 @@
+<?xml version="1.0" ?>
+<sdf version="1.7">
+  <world name="working_living_room">
+    
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+    
+    <plugin filename="libgz-sim-physics-system.so" name="gz::sim::systems::Physics"/>
+    <plugin filename="libgz-sim-user-commands-system.so" name="gz::sim::systems::UserCommands"/>
+    <plugin filename="libgz-sim-scene-broadcaster-system.so" name="gz::sim::systems::SceneBroadcaster"/>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <!-- 地面 -->
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>20 20</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>20 20</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.9 0.9 0.9 1</ambient>
+            <diffuse>0.9 0.9 0.9 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- 墙壁 -->
+    <model name="wall_1">
+      <static>true</static>
+      <pose>5 0 1.5 0 0 0</pose>
+      <link name="wall_link">
+        <collision name="wall_collision">
+          <geometry>
+            <box>
+              <size>0.2 10 3</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="wall_visual">
+          <geometry>
+            <box>
+              <size>0.2 10 3</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.7 1</ambient>
+            <diffuse>0.8 0.8 0.7 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- 沙发 -->
+    <model name="sofa">
+      <static>true</static>
+      <pose>2 -2 0.4 0 0 1.57</pose>
+      <link name="sofa_link">
+        <collision name="sofa_collision">
+          <geometry>
+            <box>
+              <size>2.5 1 0.8</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="sofa_visual">
+          <geometry>
+            <box>
+              <size>2.5 1 0.8</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.5 0.3 0.2 1</ambient>
+            <diffuse>0.5 0.3 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- 咖啡桌 -->
+    <model name="coffee_table">
+      <static>true</static>
+      <pose>0 -0.6 0.3 0 0 0</pose>
+      <link name="table_link">
+        <collision name="table_collision">
+          <geometry>
+            <box>
+              <size>1.2 0.8 0.6</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="table_visual">
+          <geometry>
+            <box>
+              <size>1.2 0.8 0.6</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.4 0.2 0.1 1</ambient>
+            <diffuse>0.4 0.2 0.1 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- 电视架 -->
+    <model name="tv_stand">
+      <static>true</static>
+      <pose>0 3 0.4 0 0 0</pose>
+      <link name="stand_link">
+        <collision name="stand_collision">
+          <geometry>
+            <box>
+              <size>1.5 0.4 0.8</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="stand_visual">
+          <geometry>
+            <box>
+              <size>1.5 0.4 0.8</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.3 0.3 0.3 1</ambient>
+            <diffuse>0.3 0.3 0.3 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- 一些可抓取的物体 -->
+    <model name="bottle">
+      <pose>0.2 -0.8 0.65 0 0 0</pose>
+      <link name="bottle_link">
+        <inertial>
+          <mass>0.2</mass>
+          <inertia>
+            <ixx>0.001</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.001</iyy>
+            <iyz>0</iyz>
+            <izz>0.0005</izz>
+          </inertia>
+        </inertial>
+        <collision name="bottle_collision">
+          <geometry>
+            <cylinder>
+              <radius>0.03</radius>
+              <length>0.15</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="bottle_visual">
+          <geometry>
+            <cylinder>
+              <radius>0.03</radius>
+              <length>0.15</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0 0.5 1 0.8</ambient>
+            <diffuse>0 0.5 1 0.8</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="box">
+      <pose>-0.3 -0.9 0.63 0 0 0</pose>
+      <link name="box_link">
+        <inertial>
+          <mass>0.1</mass>
+          <inertia>
+            <ixx>0.0002</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.0002</iyy>
+            <iyz>0</iyz>
+            <izz>0.0002</izz>
+          </inertia>
+        </inertial>
+        <collision name="box_collision">
+          <geometry>
+            <box>
+              <size>0.06 0.06 0.06</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="box_visual">
+          <geometry>
+            <box>
+              <size>0.06 0.06 0.06</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>1 0 0 1</ambient>
+            <diffuse>1 0 0 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- 俯视咖啡桌的摄像头 -->
+    <model name="over_table_camera">
+      <static>true</static>
+      <!-- 位置：x=0, y=-0.6, z=1.2，正好在咖啡桌上方，z可根据需要调整高度 -->
+      <pose>0 -0.6 2.0 0 1.57 0</pose>
+      <link name="camera_link">
+        <sensor name="camera_sensor" type="camera">
+          <pose>0 0 0 0 0 0</pose>
+          <camera>
+            <horizontal_fov>1.57</horizontal_fov>
+            <image>
+              <width>640</width>
+              <height>480</height>
+              <format>R8G8B8</format>
+            </image>
+            <clip>
+              <near>0.1</near>
+              <far>10</far>
+            </clip>
+          </camera>
+          <always_on>1</always_on>
+          <update_rate>30</update_rate>
+          <visualize>true</visualize>
+        </sensor>
+      </link>
+    </model>
+
+    <!-- 咖啡桌上的绿色长方形区域 -->
+    <model name="green_rect_area">
+      <static>true</static>
+      <pose>-0.3 -0.6 0.61 0 0 0</pose>
+      <link name="green_rect_link">
+        <visual name="green_rect_visual">
+          <geometry>
+            <box>
+              <size>0.24 0.12 0.01</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0 1 0 1</ambient>
+            <diffuse>0 1 0 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- 咖啡桌上的紫色长方形区域 -->
+    <model name="purple_rect_area">
+      <static>true</static>
+      <pose>0.3 -0.6 0.61 0 0 0</pose>
+      <link name="purple_rect_link">
+        <visual name="purple_rect_visual">
+          <geometry>
+            <box>
+              <size>0.24 0.12 0.01</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.6 0 1 1</ambient>
+            <diffuse>0.6 0 1 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- 咖啡桌上的盘子（白色盘体+浅黄色中心） -->
+    <model name="plate">
+      <static>true</static>
+      <pose>0.0 -0.6 0.62 0 0 0</pose>
+      <link name="plate_link">
+        <!-- 盘子主体 -->
+        <visual name="plate_visual">
+          <geometry>
+            <cylinder>
+              <radius>0.10</radius>
+              <length>0.015</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+          </material>
+        </visual>
+        <!-- 盘子中心 -->
+        <visual name="plate_center">
+          <pose>0 0 0.008 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.05</radius>
+              <length>0.005</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>1 1 0.7 1</ambient>
+            <diffuse>1 1 0.7 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- 咖啡桌上的蓝色杯子（带把手） -->
+    <model name="cup">
+      <static>true</static>
+      <pose>0.15 -0.6 0.65 0 0 0</pose>
+      <link name="cup_link">
+        <!-- 杯身 -->
+        <visual name="cup_body">
+          <geometry>
+            <cylinder>
+              <radius>0.035</radius>
+              <length>0.08</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.2 0.4 1 1</ambient>
+            <diffuse>0.2 0.4 1 1</diffuse>
+          </material>
+        </visual>
+        <!-- 杯口加深色 -->
+        <visual name="cup_top">
+          <pose>0 0 0.04 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.037</radius>
+              <length>0.005</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.1 0.2 0.5 1</ambient>
+            <diffuse>0.1 0.2 0.5 1</diffuse>
+          </material>
+        </visual>
+        <!-- 把手（细长圆柱体） -->
+        <visual name="cup_handle">
+          <pose>0.045 0 0 0 1.5708 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.008</radius>
+              <length>0.045</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.2 0.4 1 1</ambient>
+            <diffuse>0.2 0.4 1 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+  </world>
+</sdf>

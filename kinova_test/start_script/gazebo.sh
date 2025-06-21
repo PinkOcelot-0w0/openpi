@@ -1,0 +1,2 @@
+source ~/data/ros2_kortex_ws/install/setup.bash
+ros2 launch kortex_bringup kortex_sim_control.launch.py use_sim_time:=true launch_rviz:=false robot_controller:=joint_trajectory_controller gripper:=robotiq_2f_85 vision:=true

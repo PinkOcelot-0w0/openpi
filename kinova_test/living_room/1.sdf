@@ -98,7 +98,7 @@
     </model>
     <model name='sofa'>
       <static>true</static>
-      <pose>2 -2 0.40000000000000002 0 0 1.5700000000000001</pose>
+      <pose>2 -2 0.40000000596046448 0 0 1.5699999681373873</pose>
       <link name='sofa_link'>
         <collision name='sofa_collision'>
           <geometry>
@@ -137,7 +137,7 @@
     </model>
     <model name='coffee_table'>
       <static>true</static>
-      <pose>0 -0.59999999999999998 0.29999999999999999 0 0 0</pose>
+      <pose>0 -0.60000002384185791 0.30000001192092896 0 0 0</pose>
       <link name='table_link'>
         <collision name='table_collision'>
           <geometry>
@@ -176,7 +176,7 @@
     </model>
     <model name='tv_stand'>
       <static>true</static>
-      <pose>0 3 0.40000000000000002 0 0 0</pose>
+      <pose>0 3 0.40000000596046448 0 0 0</pose>
       <link name='stand_link'>
         <collision name='stand_collision'>
           <geometry>
@@ -214,7 +214,7 @@
       <self_collide>false</self_collide>
     </model>
     <model name='bottle'>
-      <pose>0.20000699999999999 -0.80002099999999998 0.67499799999999999 7.62361e-06 -1.7326900000000012e-05 5.7624300000000003e-05</pose>
+      <pose>0.2000095397233963 -0.80002015829086304 0.67500001192092896 -2.1424719795341249e-06 -2.4120572312910699e-06 4.2686175978708261e-05</pose>
       <link name='bottle_link'>
         <inertial>
           <mass>0.20000000000000001</mass>
@@ -255,7 +255,7 @@
       <self_collide>false</self_collide>
     </model>
     <model name='box'>
-      <pose>-0.29999999999999999 -0.90000000000000002 0.63 -3.2468900000000001e-12 8.0472900000000001e-12 -1.30644e-23</pose>
+      <pose>-0.06913447380065918 -0.38298499584197998 0.62999892234802246 -4.8604220024628972e-07 1.4200419436909275e-06 1.5037426816426349e-08</pose>
       <link name='box_link'>
         <inertial>
           <mass>0.10000000000000001</mass>
@@ -295,16 +295,16 @@
     </model>
     <model name='over_table_camera'>
       <static>true</static>
-      <pose>0 -0.59999999999999998 2 0 1.5700000000004057 0</pose>
+      <pose>0 -0.60000002384185791 1.6 0 1.5699999681370522 0</pose>
       <link name='camera_link'>
         <sensor name='camera_sensor' type='camera'>
           <pose>0 0 0 0 0 0</pose>
           <topic>__default__</topic>
           <update_rate>30</update_rate>
           <enable_metrics>false</enable_metrics>
-          <camera>
+          <camera name='__default__'>
             <pose>0 0 0 0 0 0</pose>
-            <horizontal_fov>1.5700000000000001</horizontal_fov>
+            <horizontal_fov>1.300000000000001</horizontal_fov>
             <image>
               <width>640</width>
               <height>480</height>
@@ -363,7 +363,7 @@
     </model>
     <model name='green_rect_area'>
       <static>true</static>
-      <pose>-0.29999999999999999 -0.59999999999999998 0.60999999999999999 0 0 0</pose>
+      <pose>-0.30000001192092896 -0.60000002384185791 0.61000001430511475 0 0 0</pose>
       <link name='green_rect_link'>
         <visual name='green_rect_visual'>
           <geometry>
@@ -395,7 +395,7 @@
     </model>
     <model name='purple_rect_area'>
       <static>true</static>
-      <pose>0.29999999999999999 -0.59999999999999998 0.60999999999999999 0 0 0</pose>
+      <pose>0.30000001192092896 -0.60000002384185791 0.61000001430511475 0 0 0</pose>
       <link name='purple_rect_link'>
         <visual name='purple_rect_visual'>
           <geometry>
@@ -427,7 +427,7 @@
     </model>
     <model name='plate'>
       <static>true</static>
-      <pose>0 -0.59999999999999998 0.62 0 0 0</pose>
+      <pose>0 -0.60000002384185791 0.62000000476837158 0 0 0</pose>
       <link name='plate_link'>
         <visual name='plate_visual'>
           <geometry>
@@ -527,7 +527,7 @@
         </visual>
         <enable_wind>false</enable_wind>
       </link>
-      <pose>0.23189734413859944 -0.38851999877661797 0.61764770508135491 9.6836938414561528e-06 -2.3679046426606551e-06 -1.8419996745581679e-05</pose>
+      <pose>0.23189654093697454 -0.38852142028112185 0.61764776468492044 7.5298688640004551e-06 -3.0779738937146227e-06 -4.4246870614743143e-05</pose>
       <static>false</static>
       <self_collide>false</self_collide>
     </model>

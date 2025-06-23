@@ -12,6 +12,14 @@ COPY --from=ghcr.io/astral-sh/uv:0.5.1 /uv /uvx /bin/
 
 WORKDIR /app
 
+RUN sed -i 's|http://archive.ubuntu.com/ubuntu/|http://mirrors.aliyun.com/ubuntu/|g' /etc/apt/sources.list && \
+    sed -i 's|http://security.ubuntu.com/ubuntu/|http://mirrors.aliyun.com/ubuntu/|g' /etc/apt/sources.list
+
+RUN apt-get update && apt-get install -y \
+    clang build-essential cmake git curl wget ca-certificates \
+    linux-libc-dev libevdev-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 # Needed because LeRobot uses git-lfs.
 RUN apt-get update && apt-get install -y git git-lfs linux-headers-generic build-essential clang
 
@@ -30,5 +38,5 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=packages/openpi-client/pyproject.toml,target=packages/openpi-client/pyproject.toml \
     --mount=type=bind,source=packages/openpi-client/src,target=packages/openpi-client/src \
     GIT_LFS_SKIP_SMUDGE=1 uv sync --frozen --no-install-project --no-dev
-
+    
 CMD /bin/bash -c "uv run scripts/serve_policy.py $SERVER_ARGS"

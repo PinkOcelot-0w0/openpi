@@ -19,33 +19,26 @@ ros2 topic pub /joint_trajectory_controller/joint_trajectory trajectory_msgs/Joi
 }" -1
 """
 
-JOINT_LIMITS = [
-    (-0.32, 6.27),  # joint_1 (continuous, 下限收紧)
-    (-2.41, 2.41),  # joint_2 (revolute)
-    (-6.27, 6.27),  # joint_3 (continuous)
-    (-1.95, 2.57),  # joint_4 (revolute, 仿真实际极限)
-    (-0.37, 6.27),  # joint_5 (continuous, 下限收紧)
-    (-2.23, 0.67),  # joint_6 (revolute, 上限收紧)
-    (-6.27, 6.27),  # joint_7 (continuous)
-]
-
-
-def clip_joints(positions):
-    return [max(min(p, lim[1]), lim[0]) for p, lim in zip(positions, JOINT_LIMITS)]
-
 
 class ArmObsCollector(Node):
     def __init__(self):
         super().__init__("arm_obs_collector")
         self.bridge = CvBridge()
-        self.top_img = None
+        self.left_img = None
+        self.right_img = None
         self.wrist_img = None
         self.state = None
 
         self.create_subscription(
             Image,
-            "/world/working_living_room/model/over_table_camera/link/camera_link/sensor/camera_sensor/image",
-            self.top_img_callback,
+            "/world/working_living_room/model/left_camera/link/camera_link/sensor/camera_sensor/image",
+            self.left_img_callback,
+            10,
+        )
+        self.create_subscription(
+            Image,
+            "/world/working_living_room/model/right_camera/link/camera_link/sensor/camera_sensor/image",
+            self.right_img_callback,
             10,
         )
         self.create_subscription(
@@ -68,14 +61,21 @@ class ArmObsCollector(Node):
             "joint_7",
         ]
 
-    def top_img_callback(self, msg):
-        self.top_img = self.bridge.imgmsg_to_cv2(msg, desired_encoding="bgr8")
+    def left_img_callback(self, msg):
+        self.left_img = self.bridge.imgmsg_to_cv2(msg, desired_encoding="bgr8")
+        print("左侧相机图像传输完成")
+
+    def right_img_callback(self, msg):
+        self.right_img = self.bridge.imgmsg_to_cv2(msg, desired_encoding="bgr8")
+        print("右侧相机图像传输完成")
 
     def wrist_img_callback(self, msg):
         self.wrist_img = self.bridge.imgmsg_to_cv2(msg, desired_encoding="bgr8")
+        print("腕部相机图像传输完成")
 
     def state_callback(self, msg):
         self.state = np.array(msg.position, dtype=np.float32)
+        print("关节状态传输完成")
 
     def send_goal(self, positions):
         goal_msg = FollowJointTrajectory.Goal()
@@ -101,37 +101,44 @@ def main():
     task_instruction = "抓取桌上的红色方块并且放在紫色区域"
     num_steps = 50
 
-    # 等待所有观测就绪
     print("等待图像和关节状态...")
-    while node.top_img is None or node.wrist_img is None or node.state is None:
+    while (
+        node.left_img is None
+        or node.right_img is None
+        or node.wrist_img is None
+        or node.state is None
+    ):
         rclpy.spin_once(node, timeout_sec=0.1)
         time.sleep(0.1)
     print("观测已就绪，开始推理...")
 
     for step in range(num_steps):
-        # 获取最新观测
-        img = node.top_img
+        left_img = node.left_img
+        right_img = node.right_img
         wrist_img = node.wrist_img
         state = node.state
 
-        # 预处理图像
         obs = {
-            "observation/image": image_tools.convert_to_uint8(
-                image_tools.resize_with_pad(img, 224, 224)
+            "observation/exterior_image_1_left": image_tools.convert_to_uint8(
+                image_tools.resize_with_pad(left_img, 224, 224)
             ),
-            "observation/wrist_image": image_tools.convert_to_uint8(
+            "observation/exterior_image_1_right": image_tools.convert_to_uint8(
+                image_tools.resize_with_pad(right_img, 224, 224)
+            ),
+            "observation/wrist_image_left": image_tools.convert_to_uint8(
                 image_tools.resize_with_pad(wrist_img, 224, 224)
             ),
-            "observation/state": state,
+            "observation/joint_position": state[:7],
+            "observation/gripper_position": (
+                state[7:] if len(state) > 7 else np.array([0.0])
+            ),
             "prompt": task_instruction,
         }
 
-        # 推理
         action_chunk = client.infer(obs)["actions"]
         print(f"Step {step}/{num_steps}")
-        # 执行动作
         for pos in action_chunk:
-            safe_pos = clip_joints(pos.tolist())
+            safe_pos = pos.tolist()
             node.send_goal(safe_pos)
             time.sleep(2.5)
 

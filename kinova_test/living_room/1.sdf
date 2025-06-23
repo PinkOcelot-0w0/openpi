@@ -293,9 +293,10 @@
       <static>false</static>
       <self_collide>false</self_collide>
     </model>
-    <model name='over_table_camera'>
+    <!-- 修改原有摄像机为 left_camera -->
+    <model name='left_camera'>
       <static>true</static>
-      <pose>-0.30000001192092896 -0.75 2 -1.3047068954028923e-05 1.5699998680697342 1.5699868210050616</pose>
+      <pose>-0.7 -0.1 0.9 0 0.3 -0.7</pose>
       <link name='camera_link'>
         <sensor name='camera_sensor' type='camera'>
           <pose>0 0 0 0 0 0</pose>
@@ -304,7 +305,77 @@
           <enable_metrics>false</enable_metrics>
           <camera name='__default__'>
             <pose>0 0 0 0 0 0</pose>
-            <horizontal_fov>1.400000000000001</horizontal_fov>
+            <horizontal_fov>1.4</horizontal_fov>
+            <image>
+              <width>640</width>
+              <height>480</height>
+              <format>RGB_INT8</format>
+              <anti_aliasing>4</anti_aliasing>
+            </image>
+            <camera_info_topic>__default__</camera_info_topic>
+            <trigger_topic></trigger_topic>
+            <triggered>false</triggered>
+            <clip>
+              <near>0.10000000000000001</near>
+              <far>10</far>
+            </clip>
+            <save enabled='false'>
+              <path>__default__</path>
+            </save>
+            <visibility_mask>4294967295</visibility_mask>
+            <noise>
+              <type>none</type>
+              <mean>0</mean>
+              <stddev>0</stddev>
+            </noise>
+            <distortion>
+              <k1>0</k1>
+              <k2>0</k2>
+              <k3>0</k3>
+              <p1>0</p1>
+              <p2>0</p2>
+              <center>0.5 0.5</center>
+            </distortion>
+            <lens>
+              <type>stereographic</type>
+              <scale_to_hfov>true</scale_to_hfov>
+              <cutoff_angle>1.5707963267948966</cutoff_angle>
+              <env_texture_size>256</env_texture_size>
+            </lens>
+            <optical_frame_id></optical_frame_id>
+          </camera>
+        </sensor>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
+      <self_collide>false</self_collide>
+    </model>
+
+    <!-- 新增 right_camera，位置略微右移，姿态可根据需要调整 -->
+    <model name='right_camera'>
+      <static>true</static>
+      <pose>-0.7 -1 0.9 0 0.3 0.7</pose>
+      <link name='camera_link'>
+        <sensor name='camera_sensor' type='camera'>
+          <pose>0 0 0 0 0 0</pose>
+          <topic>__default__</topic>
+          <update_rate>30</update_rate>
+          <enable_metrics>false</enable_metrics>
+          <camera name='__default__'>
+            <pose>0 0 0 0 0 0</pose>
+            <horizontal_fov>1.4</horizontal_fov>
             <image>
               <width>640</width>
               <height>480</height>

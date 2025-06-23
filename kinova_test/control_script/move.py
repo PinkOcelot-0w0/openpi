@@ -10,6 +10,14 @@ from control_msgs.action import FollowJointTrajectory
 from trajectory_msgs.msg import JointTrajectoryPoint
 from rclpy.action import ActionClient
 
+"""
+ros2 topic pub /joint_trajectory_controller/joint_trajectory trajectory_msgs/JointTrajectory "{
+  joint_names: [joint_1, joint_2, joint_3, joint_4, joint_5, joint_6, joint_7],
+  points: [
+    { positions: [0, 0, 0, 1.57, 0, 0.7, -1.57], time_from_start: { sec: 3 } },
+  ]
+}" -1
+"""
 
 JOINT_LIMITS = [
     (-0.32, 6.27),  # joint_1 (continuous, 下限收紧)
@@ -90,7 +98,7 @@ def main():
     client = websocket_client_policy.WebsocketClientPolicy(
         host="10.20.23.90", port=40003
     )
-    task_instruction = "抓住红色的方块"
+    task_instruction = "抓取桌上的红色方块并且放在紫色区域"
     num_steps = 50
 
     # 等待所有观测就绪

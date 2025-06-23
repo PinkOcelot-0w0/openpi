@@ -214,7 +214,7 @@
       <self_collide>false</self_collide>
     </model>
     <model name='bottle'>
-      <pose>0.2000095397233963 -0.80002015829086304 0.67500001192092896 -2.1424719795341249e-06 -2.4120572312910699e-06 4.2686175978708261e-05</pose>
+      <pose>-0.24406380951404572 -0.79858160018920898 0.67500001192092896 -2.160320951407847e-05 -2.9409982320351613e-05 -0.00050415645092632825</pose>
       <link name='bottle_link'>
         <inertial>
           <mass>0.20000000000000001</mass>
@@ -255,7 +255,7 @@
       <self_collide>false</self_collide>
     </model>
     <model name='box'>
-      <pose>-0.06913447380065918 -0.38298499584197998 0.62999892234802246 -4.8604220024628972e-07 1.4200419436909275e-06 1.5037426816426349e-08</pose>
+      <pose>0.001172203104943037 -0.44133934378623962 0.62999999523162842 4.8147242206687115e-08 -7.5878910162361557e-08 -0.0015851102851606347</pose>
       <link name='box_link'>
         <inertial>
           <mass>0.10000000000000001</mass>
@@ -295,7 +295,7 @@
     </model>
     <model name='over_table_camera'>
       <static>true</static>
-      <pose>0 -0.60000002384185791 1.6 0 1.5699999681370522 0</pose>
+      <pose>-0.30000001192092896 -0.75 2 -1.3047068954028923e-05 1.5699998680697342 1.5699868210050616</pose>
       <link name='camera_link'>
         <sensor name='camera_sensor' type='camera'>
           <pose>0 0 0 0 0 0</pose>
@@ -304,7 +304,7 @@
           <enable_metrics>false</enable_metrics>
           <camera name='__default__'>
             <pose>0 0 0 0 0 0</pose>
-            <horizontal_fov>1.300000000000001</horizontal_fov>
+            <horizontal_fov>1.400000000000001</horizontal_fov>
             <image>
               <width>640</width>
               <height>480</height>
@@ -527,7 +527,7 @@
         </visual>
         <enable_wind>false</enable_wind>
       </link>
-      <pose>0.23189654093697454 -0.38852142028112185 0.61764776468492044 7.5298688640004551e-06 -3.0779738937146227e-06 -4.4246870614743143e-05</pose>
+      <pose>0.27737479285537414 -0.38860481735506125 0.6176477646854035 8.7489853317504549e-06 -2.1194317094598954e-06 -0.00014770683801433165</pose>
       <static>false</static>
       <self_collide>false</self_collide>
     </model>

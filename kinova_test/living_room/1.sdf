@@ -137,7 +137,7 @@
     </model>
     <model name='coffee_table'>
       <static>true</static>
-      <pose>0 -0.60000002384185791 0.30000001192092896 0 0 0</pose>
+      <pose>0 -0.6 0.3 0 0 0</pose>
       <link name='table_link'>
         <collision name='table_collision'>
           <geometry>
@@ -294,9 +294,10 @@
       <self_collide>false</self_collide>
     </model>
     <!-- 修改原有摄像机为 left_camera -->
+    <!-- 左侧位置坐标 -1 -0.1 0.75 0 0.3 -0.65 -->
     <model name='left_camera'>
       <static>true</static>
-      <pose>-1 -0.1 0.75 0 0.3 -0.65</pose>
+      <pose>-0.4 0 1.5 0 0.8 -1.57</pose>
       <link name='camera_link'>
         <sensor name='camera_sensor' type='camera'>
           <pose>0 0 0 0 0 0</pose>
@@ -305,7 +306,7 @@
           <enable_metrics>false</enable_metrics>
           <camera name='__default__'>
             <pose>0 0 0 0 0 0</pose>
-            <horizontal_fov>1.4</horizontal_fov>
+            <horizontal_fov>1.7</horizontal_fov>
             <image>
               <width>640</width>
               <height>480</height>

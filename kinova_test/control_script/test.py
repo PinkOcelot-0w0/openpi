@@ -11,6 +11,7 @@ from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from control_msgs.msg import GripperCommand
 import cv2
 import threading
+import time
 
 """
 ros2 topic pub /joint_trajectory_controller/joint_trajectory trajectory_msgs/JointTrajectory "{
@@ -31,7 +32,9 @@ left_img = None
 wrist_img = None
 state = None
 num_steps = 9999  # 本次回合要执行的步数。
-task_instruction = "抓取红色正方体"  # 示例任务指令。
+task_instruction = (
+    "你现在在控制一个7自由度的机械臂,你的任务是举起红色的正方体"  # 示例任务指令。
+)
 
 
 # 回调函数
@@ -50,7 +53,7 @@ def state_callback(msg):
     state = np.array(msg.position, dtype=np.float32)
 
 
-def send_trajectory(positions, time_sec=1):
+def send_trajectory(positions, time_sec=0):
     traj_msg = JointTrajectory()
     traj_msg.joint_names = [f"joint_{i+1}" for i in range(7)]
     point = JointTrajectoryPoint()
@@ -121,7 +124,7 @@ for step in range(num_steps):
     print("当前关节位置", joint_positions)
     if step % 10 == 0:
         action_chunk = client.infer(observation)["actions"]
-        # print(f"Step {step + 1}/{num_steps}, Action: {action_chunk}")
+        print(f"Step {step + 1}/{num_steps}")
     next_action = np.array(action_chunk[step % 10], dtype=np.float32)
     print("下一步关节位置", step, -next_action)
     send_trajectory(next_action[:7], time_sec=0)

@@ -1,150 +1,130 @@
+from openpi_client import image_tools
+from openpi_client import websocket_client_policy
 import rclpy
 from rclpy.node import Node
+from sensor_msgs.msg import JointState, Image
+from cv_bridge import CvBridge
+import numpy as np
 from rclpy.action import ActionClient
 from control_msgs.action import FollowJointTrajectory
-from trajectory_msgs.msg import JointTrajectoryPoint
-import numpy as np
-import time
+from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
+from control_msgs.msg import GripperCommand
+import cv2
+import threading
+
+"""
+ros2 topic pub /joint_trajectory_controller/joint_trajectory trajectory_msgs/JointTrajectory "{
+  joint_names: [joint_1, joint_2, joint_3, joint_4, joint_5, joint_6, joint_7],
+  points: [
+    { positions: [0, 0, 0, 1.57, 0, 0.2, -1.57], time_from_start: { sec: 3 } },
+  ]
+}" -1
+"""
+
+# 在循环外初始化策略客户端。
+client = websocket_client_policy.WebsocketClientPolicy(host="10.20.23.90", port=40003)
+
+rclpy.init()
+node = Node("data_collector")
+bridge = CvBridge()
+left_img = None
+wrist_img = None
+state = None
+num_steps = 9999  # 本次回合要执行的步数。
+task_instruction = "抓取红色正方体"  # 示例任务指令。
 
 
-class ArmActionClient(Node):
-    def __init__(self):
-        super().__init__("arm_action_client")
-        self._client = ActionClient(
-            self,
-            FollowJointTrajectory,
-            "/joint_trajectory_controller/follow_joint_trajectory",
-        )
-        self.joint_names = [
-            "joint_1",
-            "joint_2",
-            "joint_3",
-            "joint_4",
-            "joint_5",
-            "joint_6",
-            "joint_7",
-        ]
-
-    def send_goal(self, positions):
-        goal_msg = FollowJointTrajectory.Goal()
-        goal_msg.trajectory.joint_names = self.joint_names
-        point = JointTrajectoryPoint()
-        point.positions = positions
-        point.time_from_start.sec = 2
-        goal_msg.trajectory.points = [point]
-        self._client.wait_for_server()
-        self.get_logger().info(f"Sending action goal: {positions}")
-        future = self._client.send_goal_async(goal_msg)
-        rclpy.spin_until_future_complete(self, future)
-        result = future.result()
-        self.get_logger().info(f"Result: {result}")
+# 回调函数
+def left_img_callback(msg):
+    global left_img
+    left_img = bridge.imgmsg_to_cv2(msg, "bgr8")
 
 
-def main():
-    rclpy.init()
-    node = ArmActionClient()
-    # 用你的 action_chunk 替换下面这行
-    action_chunk = np.array(
-        [
-            [
-                -9.34891165e-02,
-                7.23893647e-01,
-                1.12883868e-02,
-                -2.44235002e00,
-                3.82699035e-02,
-                -6.28968206e-01,
-                -9.93321792e-01,
-            ],
-            [
-                -5.35267224e-02,
-                7.32235188e-01,
-                1.06348400e-02,
-                -2.44235002e00,
-                3.43380545e-02,
-                -6.28968206e-01,
-                -9.93321792e-01,
-            ],
-            [
-                -1.18912168e-02,
-                7.46230185e-01,
-                6.51635536e-03,
-                -2.44235002e00,
-                2.68592333e-02,
-                -6.28968206e-01,
-                -9.93321792e-01,
-            ],
-            [
-                -5.51982840e-04,
-                7.61480467e-01,
-                -5.31635912e-03,
-                -2.44235002e00,
-                1.65655190e-02,
-                -6.28968206e-01,
-                -9.93321792e-01,
-            ],
-            [
-                -1.20526449e-02,
-                7.73464989e-01,
-                -2.83574728e-02,
-                -2.44235002e00,
-                4.46453202e-03,
-                -6.28968206e-01,
-                -9.93321792e-01,
-            ],
-            [
-                -1.67342487e-02,
-                7.79139066e-01,
-                -6.32269258e-02,
-                -2.44235002e00,
-                -8.25919863e-03,
-                -6.28968206e-01,
-                -9.93321792e-01,
-            ],
-            [
-                -3.19621499e-03,
-                7.77947278e-01,
-                -1.06511453e-01,
-                -2.44235002e00,
-                -2.03601856e-02,
-                -6.28968206e-01,
-                -9.93321792e-01,
-            ],
-            [
-                1.15665282e-02,
-                7.71877844e-01,
-                -1.51098699e-01,
-                -2.44235002e00,
-                -3.06538999e-02,
-                -6.28968206e-01,
-                -9.93321792e-01,
-            ],
-            [
-                1.07798416e-02,
-                7.64553124e-01,
-                -1.87971714e-01,
-                -2.44235002e00,
-                -3.81327211e-02,
-                -6.28968206e-01,
-                -9.93321792e-01,
-            ],
-            [
-                1.60102848e-03,
-                7.59718356e-01,
-                -2.08868675e-01,
-                -2.44235002e00,
-                -4.20645701e-02,
-                -6.28968206e-01,
-                -9.93321792e-01,
-            ],
-        ]
-    )
-    for i, pos in enumerate(action_chunk):
-        node.get_logger().info(f"Step {i}: Moving to {pos}")
-        node.send_goal(pos.tolist())
-        time.sleep(2.5)  # 等待机械臂动作完成
-    node.destroy_node()
-    rclpy.shutdown()
+def wrist_img_callback(msg):
+    global wrist_img
+    wrist_img = bridge.imgmsg_to_cv2(msg, "bgr8")
 
 
-if __name__ == "__main__":
-    main()
+def state_callback(msg):
+    global state
+    state = np.array(msg.position, dtype=np.float32)
+
+
+def send_trajectory(positions, time_sec=1):
+    traj_msg = JointTrajectory()
+    traj_msg.joint_names = [f"joint_{i+1}" for i in range(7)]
+    point = JointTrajectoryPoint()
+    point.positions = list(positions)  # 保证为list即可
+    point.time_from_start.sec = int(time_sec)
+    traj_msg.points = [point]
+    traj_pub.publish(traj_msg)
+
+
+def send_gripper(position: float, max_effort: float = 20.0):
+    cmd = GripperCommand()
+    cmd.position = float(position)
+    cmd.max_effort = float(max_effort)
+    gripper_pub.publish(cmd)
+
+
+# 订阅话题
+node.create_subscription(
+    Image,
+    "/world/working_living_room/model/left_camera/link/camera_link/sensor/camera_sensor/image",
+    left_img_callback,
+    10,
+)
+node.create_subscription(
+    Image,
+    "/wrist_mounted_camera/image",
+    wrist_img_callback,
+    10,
+)
+node.create_subscription(
+    JointState,
+    "/joint_states",
+    state_callback,
+    10,
+)
+traj_pub = node.create_publisher(
+    JointTrajectory, "/joint_trajectory_controller/joint_trajectory", 10
+)
+gripper_pub = node.create_publisher(
+    GripperCommand, "/robotiq_gripper_controller/gripper_cmd", 10
+)
+
+while left_img is None or wrist_img is None or state is None:
+    rclpy.spin_once(node, timeout_sec=0.1)
+print("数据准备完毕，开始循环控制")
+
+cv2.namedWindow("Left Camera", cv2.WINDOW_NORMAL)
+cv2.namedWindow("Wrist Camera", cv2.WINDOW_NORMAL)
+threading.Thread(target=rclpy.spin, args=(node,), daemon=True).start()
+
+for step in range(num_steps):
+    joint_positions = state[:7]
+    gripper_position = np.array([state[7]], dtype=np.float32)
+    observation = {
+        "observation/exterior_image_1_left": image_tools.convert_to_uint8(
+            image_tools.resize_with_pad(left_img, 224, 224)
+        ),
+        "observation/wrist_image_left": image_tools.convert_to_uint8(
+            image_tools.resize_with_pad(wrist_img, 224, 224)
+        ),
+        "observation/joint_position": joint_positions,
+        "observation/gripper_position": gripper_position,
+        "prompt": task_instruction,
+    }
+    cv2.imshow("Left Camera", left_img)
+    cv2.imshow("Wrist Camera", wrist_img)
+    cv2.waitKey(1)
+    print("当前关节位置", joint_positions)
+    if step % 10 == 0:
+        action_chunk = client.infer(observation)["actions"]
+        # print(f"Step {step + 1}/{num_steps}, Action: {action_chunk}")
+    next_action = np.array(action_chunk[step % 10], dtype=np.float32)
+    print("下一步关节位置", step, -next_action)
+    send_trajectory(next_action[:7], time_sec=0)
+    send_gripper(next_action[7], max_effort=20.0)
+
+cv2.destroyAllWindows()

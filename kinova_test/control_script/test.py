@@ -17,7 +17,7 @@ import time
 ros2 topic pub /joint_trajectory_controller/joint_trajectory trajectory_msgs/JointTrajectory "{
   joint_names: [joint_1, joint_2, joint_3, joint_4, joint_5, joint_6, joint_7],
   points: [
-    { positions: [0, 0, 0, 1.57, 0, 0.2, -1.57], time_from_start: { sec: 3 } },
+    { positions: [0, 0, 0, 1.57, 0, 0.7, -1.57], time_from_start: { sec: 3 } },
   ]
 }" -1
 """
@@ -125,6 +125,7 @@ for step in range(num_steps):
     if step % 10 == 0:
         action_chunk = client.infer(observation)["actions"]
         print(f"Step {step + 1}/{num_steps}")
+        input("Press Enter to continue...")
     next_action = np.array(action_chunk[step % 10], dtype=np.float32)
     print("下一步关节位置", step, -next_action)
     send_trajectory(next_action[:7], time_sec=0)

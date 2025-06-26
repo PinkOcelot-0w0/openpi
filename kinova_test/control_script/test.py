@@ -22,7 +22,7 @@ ros2 topic pub /joint_trajectory_controller/joint_trajectory trajectory_msgs/Joi
 }" -1
 """
 
-# 在循环外初始化策略客户端。
+# 在循环外初始化策略客户端
 client = websocket_client_policy.WebsocketClientPolicy(host="10.20.23.90", port=40003)
 
 rclpy.init()
@@ -31,9 +31,9 @@ bridge = CvBridge()
 left_img = None
 wrist_img = None
 state = None
-num_steps = 9999  # 本次回合要执行的步数。
+num_steps = 9999  # 执行的步数
 task_instruction = (
-    "你现在在控制一个7自由度的机械臂,你的任务是举起红色的正方体"  # 示例任务指令。
+    "你现在在控制一个7自由度的机械臂,你的任务是举起红色的正方体"  # 示例任务指令
 )
 
 
@@ -57,7 +57,7 @@ def send_trajectory(positions, time_sec=0):
     traj_msg = JointTrajectory()
     traj_msg.joint_names = [f"joint_{i+1}" for i in range(7)]
     point = JointTrajectoryPoint()
-    point.positions = list(positions)  # 保证为list即可
+    point.positions = list(positions)  # 保证为list
     point.time_from_start.sec = int(time_sec)
     traj_msg.points = [point]
     traj_pub.publish(traj_msg)

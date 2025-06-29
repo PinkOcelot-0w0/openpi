@@ -38,8 +38,7 @@ left_img = None
 wrist_img = None
 state = None
 num_steps = 9999  # 执行的步数
-task_instruction = "举起绿色正方体"  # 任务
-dt = 0.1  # 控制周期
+task_instruction = "把黄色长方体拉出来"  # 任务
 
 
 # 回调函数
@@ -58,14 +57,19 @@ def state_callback(msg):
     state = np.array(msg.position, dtype=np.float32)
 
 
-def send_trajectory(positions, time_sec=0):
+vel_pub = node.create_publisher(
+    JointTrajectory, "/joint_group_velocity_controller/joint_commands", 10
+)
+
+
+def send_velocity(velocities, time_sec=0.1):
     traj_msg = JointTrajectory()
     traj_msg.joint_names = [f"joint_{i+1}" for i in range(7)]
     point = JointTrajectoryPoint()
-    point.positions = list(positions)  # 保证为list
+    point.velocities = list(velocities)
     point.time_from_start.sec = int(time_sec)
     traj_msg.points = [point]
-    traj_pub.publish(traj_msg)
+    vel_pub.publish(traj_msg)
 
 
 gripper_action_client = ActionClient(
@@ -102,52 +106,41 @@ node.create_subscription(
     state_callback,
     10,
 )
-traj_pub = node.create_publisher(
-    JointTrajectory, "/joint_trajectory_controller/joint_trajectory", 10
+
+vel_pub = node.create_publisher(
+    JointTrajectory, "/joint_group_velocity_controller/joint_commands", 10
 )
 
-while left_img is None or wrist_img is None or state is None:
+# while left_img is None or wrist_img is None or state is None:
+while wrist_img is None or state is None:
     rclpy.spin_once(node, timeout_sec=0)
 print("数据准备完毕，开始循环控制")
 
 threading.Thread(target=rclpy.spin, args=(node,), daemon=True).start()
 
-last_time = time.time()
 
 for step in range(num_steps):
-    # now = time.time()
-    # dt = now - last_time
-    # last_time = now
 
-    joint_positions = state[:7]
-    gripper_position = np.array([state[7]], dtype=np.float32)
     observation = {
-        "observation/exterior_image_1_left": image_tools.convert_to_uint8(
+        "observation/image": image_tools.convert_to_uint8(
             image_tools.resize_with_pad(left_img, 224, 224)
         ),
-        "observation/wrist_image_left": image_tools.convert_to_uint8(
+        "observation/wrist_image": image_tools.convert_to_uint8(
             image_tools.resize_with_pad(wrist_img, 224, 224)
         ),
-        "observation/joint_position": joint_positions,
-        "observation/gripper_position": gripper_position,
+        "observation/state": state,
         "prompt": task_instruction,
     }
 
     if step % 10 == 0:
         action_chunk = client.infer(observation)["actions"]
-        print(f"Step {step + 1}/{num_steps} {dt}")
+        print(f"Step {step + 1}/{num_steps}")
         print("动作:", action_chunk)
     next_action = np.array(action_chunk[step % 10], dtype=np.float32)
-    # print("下一步动作:", next_action)
-    current_position = state[:7]
-    current_velocity = next_action[:7]
-    target_position = current_position + current_velocity * dt
 
-    send_trajectory(target_position, time_sec=0)
-    if next_action[7] < 0.5:
-        next_action[7] = 0.0
+    send_velocity(next_action[:7], time_sec=0)
+    if next_action[7] < 0.4:
+        next_action[7] = 0.05
     else:
-        next_action[7] = 1.0
+        next_action[7] = 0.79
     send_gripper_action(next_action[7])
-
-cv2.destroyAllWindows()

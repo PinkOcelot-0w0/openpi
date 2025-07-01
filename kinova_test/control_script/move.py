@@ -9,6 +9,8 @@ import time
 from control_msgs.action import FollowJointTrajectory
 from trajectory_msgs.msg import JointTrajectoryPoint
 from rclpy.action import ActionClient
+import cv2
+import threading
 
 """
 ros2 topic pub /joint_trajectory_controller/joint_trajectory trajectory_msgs/JointTrajectory "{
@@ -19,35 +21,23 @@ ros2 topic pub /joint_trajectory_controller/joint_trajectory trajectory_msgs/Joi
 }" -1
 """
 
-JOINT_LIMITS = [
-    (-0.32, 6.27),  # joint_1 (continuous, 下限收紧)
-    (-2.41, 2.41),  # joint_2 (revolute)
-    (-6.27, 6.27),  # joint_3 (continuous)
-    (-1.95, 2.57),  # joint_4 (revolute, 仿真实际极限)
-    (-0.37, 6.27),  # joint_5 (continuous, 下限收紧)
-    (-2.23, 0.67),  # joint_6 (revolute, 上限收紧)
-    (-6.27, 6.27),  # joint_7 (continuous)
-]
-
-
-def clip_joints(positions):
-    return [max(min(p, lim[1]), lim[0]) for p, lim in zip(positions, JOINT_LIMITS)]
-
 
 class ArmObsCollector(Node):
     def __init__(self):
         super().__init__("arm_obs_collector")
         self.bridge = CvBridge()
-        self.top_img = None
+        self.left_img = None
+        # self.right_img = None
         self.wrist_img = None
         self.state = None
 
         self.create_subscription(
             Image,
-            "/world/working_living_room/model/over_table_camera/link/camera_link/sensor/camera_sensor/image",
-            self.top_img_callback,
+            "/world/working_living_room/model/left_camera/link/camera_link/sensor/camera_sensor/image",
+            self.left_img_callback,
             10,
         )
+
         self.create_subscription(
             Image, "/wrist_mounted_camera/image", self.wrist_img_callback, 10
         )
@@ -68,14 +58,15 @@ class ArmObsCollector(Node):
             "joint_7",
         ]
 
-    def top_img_callback(self, msg):
-        self.top_img = self.bridge.imgmsg_to_cv2(msg, desired_encoding="bgr8")
+    def left_img_callback(self, msg):
+        self.left_img = self.bridge.imgmsg_to_cv2(msg, desired_encoding="bgr8")
 
     def wrist_img_callback(self, msg):
         self.wrist_img = self.bridge.imgmsg_to_cv2(msg, desired_encoding="bgr8")
 
     def state_callback(self, msg):
-        self.state = np.array(msg.position, dtype=np.float32)
+        raw_state = np.array(msg.position, dtype=np.float32)
+        self.state = np.round(raw_state, 3)
 
     def send_goal(self, positions):
         goal_msg = FollowJointTrajectory.Goal()
@@ -85,11 +76,15 @@ class ArmObsCollector(Node):
         point.time_from_start.sec = 2
         goal_msg.trajectory.points = [point]
         self._client.wait_for_server()
-        self.get_logger().info(f"Sending action goal: {positions}")
+        # self.get_logger().info(f"目标位置: {positions}")
         future = self._client.send_goal_async(goal_msg)
         rclpy.spin_until_future_complete(self, future)
         result = future.result()
-        self.get_logger().info(f"Result: {result}")
+        # self.get_logger().info(f"Accepted: {result.accepted} ,Status: {result.status}")
+
+
+def ros_spin(node):
+    rclpy.spin(node)  # 单独处理 ROS 事件
 
 
 def main():
@@ -98,43 +93,43 @@ def main():
     client = websocket_client_policy.WebsocketClientPolicy(
         host="10.20.23.90", port=40003
     )
-    task_instruction = "抓取桌上的红色方块并且放在紫色区域"
-    num_steps = 50
+    task_instruction = "抓住红色正方体"
+    num_steps = 100
 
-    # 等待所有观测就绪
     print("等待图像和关节状态...")
-    while node.top_img is None or node.wrist_img is None or node.state is None:
+    while node.left_img is None or node.wrist_img is None or node.state is None:
         rclpy.spin_once(node, timeout_sec=0.1)
-        time.sleep(0.1)
     print("观测已就绪，开始推理...")
-
+    spin_thread = threading.Thread(target=ros_spin, args=(node,), daemon=True)
+    spin_thread.start()
     for step in range(num_steps):
-        # 获取最新观测
-        img = node.top_img
+        left_img = node.left_img
         wrist_img = node.wrist_img
         state = node.state
 
-        # 预处理图像
         obs = {
-            "observation/image": image_tools.convert_to_uint8(
-                image_tools.resize_with_pad(img, 224, 224)
+            "observation/exterior_image_1_left": image_tools.convert_to_uint8(
+                image_tools.resize_with_pad(left_img, 224, 224)
             ),
-            "observation/wrist_image": image_tools.convert_to_uint8(
+            "observation/wrist_image_left": image_tools.convert_to_uint8(
                 image_tools.resize_with_pad(wrist_img, 224, 224)
             ),
-            "observation/state": state,
+            "observation/joint_position": state[:7],
+            "observation/gripper_position": (
+                state[7:] if len(state) > 7 else np.array([0.0])
+            ),
             "prompt": task_instruction,
         }
-
-        # 推理
+        print("关节位置:", state[:7])
+        cv2.imshow("Left Camera", left_img)
+        cv2.imshow("Wrist Camera", wrist_img)
+        cv2.waitKey(1)
         action_chunk = client.infer(obs)["actions"]
         print(f"Step {step}/{num_steps}")
-        # 执行动作
         for pos in action_chunk:
-            safe_pos = clip_joints(pos.tolist())
+            safe_pos = pos[:7]
             node.send_goal(safe_pos)
-            time.sleep(2.5)
-
+    spin_thread.join()  # 等待线程结束
     node.destroy_node()
     rclpy.shutdown()
 
